@@ -14,7 +14,7 @@
     h1 {
         text-align: center;
         color: #333;
-        margin-bottom: 30px;
+        margin-bottom: 10px;
         font-size: 32px;
         font-weight: 600;
     }
@@ -26,6 +26,16 @@
         padding: 25px;
         border-radius: 12px;
         box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+    }
+
+    .search-box {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
     }
 
     table {
@@ -69,7 +79,10 @@
 <div class="container">
     <h1>Listado de Internos</h1>
 
-    <table>
+    <!-- 🟦 BUSCADOR -->
+    <input type="text" id="buscador" class="search-box" placeholder="Buscar por interno o nombre..." onkeyup="filtrarTabla()">
+
+    <table id="tabla">
         <tr>
             <th>Interno</th>
             <th>Persona / Sector</th>
@@ -111,6 +124,29 @@
         Última actualización: Marzo 2025
     </div>
 </div>
+
+<script>
+function filtrarTabla() {
+    let input = document.getElementById("buscador");
+    let filtro = input.value.toLowerCase();
+    let tabla = document.getElementById("tabla");
+    let filas = tabla.getElementsByTagName("tr");
+
+    for (let i = 1; i < filas.length; i++) {
+        let columnas = filas[i].getElementsByTagName("td");
+        let coincide = false;
+
+        for (let j = 0; j < columnas.length; j++) {
+            let texto = columnas[j].innerText.toLowerCase();
+            if (texto.indexOf(filtro) > -1) {
+                coincide = true;
+            }
+        }
+
+        filas[i].style.display = coincide ? "" : "none";
+    }
+}
+</script>
 
 </body>
 </html>
