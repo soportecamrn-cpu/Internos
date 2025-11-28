@@ -49,13 +49,14 @@
 
 <h1>Listado de Internos</h1>
 
-<input type="text" id="search" placeholder="Buscar interno o persona...">
+<input type="text" id="search" placeholder="Buscar interno, persona o email...">
 
 <table id="tabla">
     <thead>
         <tr>
             <th>Interno</th>
             <th>Persona / Sector</th>
+            <th>Email</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -73,7 +74,7 @@ async function cargarCSV() {
     tbody.innerHTML = "";
 
     filas.slice(1).forEach(row => {
-        if (row.length < 2) return;
+        if (row.length < 3) return; // ahora necesitamos 3 columnas mínimo
         let tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${row[0]}</td>
