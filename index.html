@@ -5,147 +5,95 @@
 <title>Listado de Internos</title>
 <style>
     body {
-        font-family: "Segoe UI", Arial, sans-serif;
-        background: #f0f2f5;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
         margin: 0;
-        padding: 40px;
+        padding: 20px;
     }
-
     h1 {
         text-align: center;
         color: #333;
-        margin-bottom: 10px;
-        font-size: 32px;
-        font-weight: 600;
     }
-
-    .container {
-        max-width: 800px;
-        margin: auto;
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.1);
-    }
-
-    .search-box {
-        width: 100%;
-        padding: 12px;
+    #search {
+        width: 60%;
+        margin: 20px auto;
+        display: block;
+        padding: 10px;
         font-size: 16px;
         border: 1px solid #ccc;
         border-radius: 8px;
-        margin-bottom: 20px;
-        box-sizing: border-box;
     }
-
     table {
-        width: 100%;
+        width: 80%;
+        margin: 20px auto;
         border-collapse: collapse;
-        margin-top: 15px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
     th {
-        background: #007bff;
+        background: #1976d2;
         color: white;
         padding: 12px;
         font-size: 16px;
-        text-align: left;
     }
-
     td {
         padding: 10px;
         border-bottom: 1px solid #ddd;
-        font-size: 15px;
     }
-
-    tr:nth-child(even) {
-        background: #f9f9f9;
-    }
-
     tr:hover {
-        background: #eef5ff;
-    }
-
-    .footer {
-        text-align: center;
-        margin-top: 25px;
-        color: #777;
-        font-size: 13px;
+        background: #f1f1f1;
     }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Listado de Internos</h1>
+<h1>Listado de Internos</h1>
 
-    <!-- 🟦 BUSCADOR -->
-    <input type="text" id="buscador" class="search-box" placeholder="Buscar por interno o nombre..." onkeyup="filtrarTabla()">
+<input type="text" id="search" placeholder="Buscar interno o persona...">
 
-    <table id="tabla">
+<table id="tabla">
+    <thead>
         <tr>
             <th>Interno</th>
             <th>Persona / Sector</th>
         </tr>
-
-        <tr><td>200</td><td>Recepción</td></tr>
-        <tr><td>202</td><td>Viviana Carrasco - Admin.</td></tr>
-        <tr><td>203</td><td>Perla Favot</td></tr>
-        <tr><td>204</td><td>Adrian Huenumilla</td></tr>
-        <tr><td>205</td><td>Rocío</td></tr>
-        <tr><td>206</td><td>Vanina Zuñiga</td></tr>
-        <tr><td>207</td><td>Martha Carrasco - Admin.</td></tr>
-        <tr><td>208</td><td>Boca de Expendio - Celeste</td></tr>
-        <tr><td>241</td><td>Secretaría General</td></tr>
-        <tr><td>210</td><td>Noemí - Sindicato</td></tr>
-        <tr><td>211</td><td>Jessica Lezcano - Mutual</td></tr>
-        <tr><td>212</td><td>Estefany Villa / Laura Aliaga</td></tr>
-        <tr><td>215</td><td>Carolina S. - Mutual</td></tr>
-        <tr><td>216</td><td>Sandra Betancur - Mutual</td></tr>
-        <tr><td>217</td><td>Contador</td></tr>
-        <tr><td>219</td><td>Yamila Otto / Azul Huenumilla</td></tr>
-        <tr><td>221</td><td>Alexis / Victor</td></tr>
-        <tr><td>222</td><td>Farmacia - Magali / Lorena</td></tr>
-        <tr><td>223</td><td>Laura Soteri</td></tr>
-        <tr><td>224</td><td>Dario Surber / Jorge Contreras</td></tr>
-        <tr><td>225</td><td>Boca de Expendio - Turnos - Nuria</td></tr>
-        <tr><td>236</td><td>Florencia Jara</td></tr>
-        <tr><td>237</td><td>Victoria Huaiquiñir - Admin.</td></tr>
-        <tr><td>239</td><td>Carolina O.S.</td></tr>
-        <tr><td>240</td><td>Auditoría / Juliana Toril</td></tr>
-        <tr><td>247</td><td>Juan Garay / Julio San Martin</td></tr>
-        <tr><td>248</td><td>Emiliano Gatti / Hugo San Martin</td></tr>
-        <tr><td>250</td><td>Natalia Melo</td></tr>
-        <tr><td>252</td><td>Cristina - Mutual</td></tr>
-
-    </table>
-
-    <div class="footer">
-        Última actualización: Marzo 2025
-    </div>
-</div>
+    </thead>
+    <tbody></tbody>
+</table>
 
 <script>
-function filtrarTabla() {
-    let input = document.getElementById("buscador");
-    let filtro = input.value.toLowerCase();
-    let tabla = document.getElementById("tabla");
-    let filas = tabla.getElementsByTagName("tr");
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCSYe75_r2Etckwzz2kpIaCvbfM-2qV8Vt8tE9gA4jrLy3odgE4GSJvRHyNKpDGg/pub?output=csv";
 
-    for (let i = 1; i < filas.length; i++) {
-        let columnas = filas[i].getElementsByTagName("td");
-        let coincide = false;
+async function cargarCSV() {
+    const response = await fetch(CSV_URL);
+    const data = await response.text();
+    const filas = data.split("\n").map(f => f.split(","));
 
-        for (let j = 0; j < columnas.length; j++) {
-            let texto = columnas[j].innerText.toLowerCase();
-            if (texto.indexOf(filtro) > -1) {
-                coincide = true;
-            }
-        }
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = "";
 
-        filas[i].style.display = coincide ? "" : "none";
-    }
+    filas.slice(1).forEach(row => {
+        if (row.length < 2) return;
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
+
+document.getElementById("search").addEventListener("keyup", function() {
+    let filtro = this.value.toLowerCase();
+    let filas = document.querySelectorAll("#tabla tbody tr");
+
+    filas.forEach(fila => {
+        let texto = fila.textContent.toLowerCase();
+        fila.style.display = texto.includes(filtro) ? "" : "none";
+    });
+});
+
+cargarCSV();
 </script>
 
 </body>
