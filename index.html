@@ -97,6 +97,25 @@ document.getElementById("search").addEventListener("keyup", function() {
 
 cargarCSV();
 </script>
+<!-- se agrega un boton para acceder -->
+<button onclick="accederLink()" 
+        style="margin:20px auto;display:block;padding:10px 20px;
+        background:#1976d2;color:white;border:none;border-radius:8px;
+        font-size:16px;cursor:pointer;">
+    Abrir Google Sheets (con contraseña)
+</button>
 
+<script>
+function accederLink() {
+    let pass = prompt("Ingrese la contraseña:");
+
+    if (pass === "camion") {
+        window.location.href = "https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing";
+    } else {
+        alert("Contraseña incorrecta.");
+    }
+}
+</script>
+    
 </body>
 </html>
