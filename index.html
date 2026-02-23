@@ -2,120 +2,305 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Listado de Internos</title>
 <style>
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --primary: #1976d2;
+        --primary-dark: #115293;
+        --border: #d1d5db;
+        --hover: #f3f4f6;
+        --danger: #b91c1c;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
     body {
         font-family: Arial, sans-serif;
-        background: #f4f4f4;
+        background: var(--bg);
+        color: var(--text);
         margin: 0;
         padding: 20px;
     }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
     h1 {
         text-align: center;
-        color: #333;
+        margin-top: 8px;
+        margin-bottom: 16px;
     }
+
+    .controls {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    label {
+        font-size: 14px;
+        color: var(--muted);
+    }
+
     #search {
-        width: 60%;
-        margin: 20px auto;
-        display: block;
-        padding: 10px;
+        width: 100%;
+        padding: 10px 12px;
         font-size: 16px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border);
         border-radius: 8px;
     }
-    table {
-        width: 80%;
-        margin: 20px auto;
-        border-collapse: collapse;
-        background: #fff;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    #search:focus {
+        outline: 2px solid #bfdbfe;
+        border-color: var(--primary);
     }
+
+    .status {
+        min-height: 20px;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+    .status.error {
+        color: var(--danger);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
     th {
-        background: #1976d2;
+        background: var(--primary);
         color: white;
         padding: 12px;
         font-size: 16px;
+        text-align: left;
     }
+
     td {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
     }
-    tr:hover {
-        background: #f1f1f1;
+
+    tbody tr:hover {
+        background: var(--hover);
+    }
+
+    .actions {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .button {
+        padding: 10px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .button:hover {
+        background: var(--primary-dark);
+    }
+
+    @media (max-width: 640px) {
+        body {
+            padding: 12px;
+        }
+
+        th, td {
+            font-size: 14px;
+        }
     }
 </style>
 </head>
 <body>
+<main class="container">
+    <h1>Listado de Internos</h1>
 
-<h1>Listado de Internos</h1>
+    <section class="controls">
+        <label for="search">Buscar por interno, persona o sector</label>
+        <input
+            type="text"
+            id="search"
+            placeholder="Escribi para filtrar resultados..."
+            autocomplete="off"
+        >
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
 
-<input type="text" id="search" placeholder="Buscar interno, persona o sector...">
+    <table id="tabla">
+        <thead>
+            <tr>
+                <th>Interno</th>
+                <th>Persona</th>
+                <th>Sector</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-<table id="tabla">
-    <thead>
-        <tr>
-            <th>Interno</th>
-            <th>Persona</th>
-            <th>Sector</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <section class="actions">
+        <a
+            class="button"
+            href="https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Administrador.
+        </a>
+    </section>
+</main>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCSYe75_r2Etckwzz2kpIaCvbfM-2qV8Vt8tE9gA4jrLy3odgE4GSJvRHyNKpDGg/pub?output=csv";
 
-async function cargarCSV() {
-    const response = await fetch(CSV_URL);
-    const data = await response.text();
-    const filas = data.split("\n").map(f => f.split(","));
+const tbody = document.querySelector("#tabla tbody");
+const statusEl = document.getElementById("status");
+const searchInput = document.getElementById("search");
 
-    const tbody = document.querySelector("#tabla tbody");
+function setStatus(message, isError = false) {
+    statusEl.textContent = message;
+    statusEl.classList.toggle("error", isError);
+}
+
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === "\"") {
+            if (inQuotes && next === "\"") {
+                cell += "\"";
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (!inQuotes && char === ",") {
+            row.push(cell.trim());
+            cell = "";
+            continue;
+        }
+
+        if (!inQuotes && (char === "\n" || char === "\r")) {
+            if (char === "\r" && next === "\n") {
+                i += 1;
+            }
+            row.push(cell.trim());
+            rows.push(row);
+            row = [];
+            cell = "";
+            continue;
+        }
+
+        cell += char;
+    }
+
+    if (cell.length > 0 || row.length > 0) {
+        row.push(cell.trim());
+        rows.push(row);
+    }
+
+    return rows.filter((r) => r.some((c) => c.length > 0));
+}
+
+function escapeHTML(value) {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function renderRows(rows) {
     tbody.innerHTML = "";
 
-    filas.slice(1).forEach(row => {
-        if (row.length < 3) return; // ahora necesitamos 3 columnas mínimo
-        let tr = document.createElement("tr");
+    rows.forEach((row) => {
+        if (row.length < 3) return;
+
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${row[2]}</td>
+            <td>${escapeHTML(row[0])}</td>
+            <td>${escapeHTML(row[1])}</td>
+            <td>${escapeHTML(row[2])}</td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-document.getElementById("search").addEventListener("keyup", function() {
-    let filtro = this.value.toLowerCase();
-    let filas = document.querySelectorAll("#tabla tbody tr");
+function filtrarTabla() {
+    const filtro = searchInput.value.toLowerCase().trim();
+    const filas = document.querySelectorAll("#tabla tbody tr");
 
-    filas.forEach(fila => {
-        let texto = fila.textContent.toLowerCase();
-        fila.style.display = texto.includes(filtro) ? "" : "none";
+    let visibles = 0;
+    filas.forEach((fila) => {
+        const texto = fila.textContent.toLowerCase();
+        const mostrar = texto.includes(filtro);
+        fila.style.display = mostrar ? "" : "none";
+        if (mostrar) visibles += 1;
     });
-});
+
+    setStatus(`Mostrando ${visibles} resultado(s).`);
+}
+
+async function cargarCSV() {
+    try {
+        setStatus("Cargando datos...");
+
+        const response = await fetch(CSV_URL, { cache: "no-store" });
+        if (!response.ok) {
+            throw new Error(`Error HTTP ${response.status}`);
+        }
+
+        const data = await response.text();
+        const filas = parseCSV(data);
+
+        if (filas.length <= 1) {
+            tbody.innerHTML = "";
+            setStatus("No se encontraron datos para mostrar.");
+            return;
+        }
+
+        renderRows(filas.slice(1));
+        filtrarTabla();
+    } catch (error) {
+        tbody.innerHTML = "";
+        setStatus("No se pudo cargar el listado. Verifica la URL del CSV y la conexion.", true);
+        console.error("Error al cargar CSV:", error);
+    }
+}
+
+searchInput.addEventListener("input", filtrarTabla);
 
 cargarCSV();
 </script>
-<!-- se agrega un boton para acceder -->
-<button onclick="accederLink()" 
-        style="margin:20px auto;display:block;padding:10px 20px;
-        background:#1976d2;color:white;border:none;border-radius:8px;
-        font-size:16px;cursor:pointer;">
-    
-</button>
-
-<script>
-function accederLink() {
-    let pass = prompt("Ingrese la contraseña:");
-
-    if (pass === "nose") {
-        window.location.href = "https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing";
-    } else {
-        alert("Contraseña incorrecta.");
-    }
-}
-</script>
-    
 </body>
 </html>
