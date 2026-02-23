@@ -40,6 +40,21 @@
         margin-bottom: 16px;
     }
 
+    .birthday-banner {
+        display: none;
+        margin: 0 0 14px 0;
+        padding: 12px 14px;
+        border: 1px solid #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    .birthday-banner.show {
+        display: block;
+    }
+
     .controls {
         display: grid;
         gap: 10px;
@@ -136,6 +151,7 @@
 <body>
 <main class="container">
     <h1>Listado de Internos</h1>
+    <p id="birthdayBanner" class="birthday-banner" role="status" aria-live="polite"></p>
 
     <section class="controls">
         <label for="search">Buscar por interno, persona o sector</label>
@@ -173,10 +189,13 @@
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCSYe75_r2Etckwzz2kpIaCvbfM-2qV8Vt8tE9gA4jrLy3odgE4GSJvRHyNKpDGg/pub?output=csv";
+const CUMPLES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSr04sWruawDgNSQNV5HHev94ZQgu9k6hT51c9JOvvvIQV2ggCglc6ZSSG_iBHiTfzYniY842GDuNam/pub?output=csv";
+const TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 const tbody = document.querySelector("#tabla tbody");
 const statusEl = document.getElementById("status");
 const searchInput = document.getElementById("search");
+const birthdayBanner = document.getElementById("birthdayBanner");
 
 function setStatus(message, isError = false) {
     statusEl.textContent = message;
@@ -240,6 +259,71 @@ function escapeHTML(value) {
         .replaceAll("'", "&#39;");
 }
 
+function normalizeHeader(value) {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
+}
+
+function getDayMonthInTimeZone(timeZone) {
+    const formatter = new Intl.DateTimeFormat("es-AR", {
+        timeZone,
+        day: "2-digit",
+        month: "2-digit"
+    });
+
+    const parts = formatter.formatToParts(new Date());
+    const day = Number(parts.find((p) => p.type === "day").value);
+    const month = Number(parts.find((p) => p.type === "month").value);
+    return { day, month };
+}
+
+function parseBirthdayDayMonth(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return null;
+
+    let match = raw.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+    if (match) {
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            return { day, month };
+        }
+    }
+
+    match = raw.match(/^(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?$/);
+    if (match) {
+        const day = Number(match[1]);
+        const month = Number(match[2]);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            return { day, month };
+        }
+    }
+
+    return null;
+}
+
+function setBirthdayMessage(names) {
+    if (!Array.isArray(names) || names.length === 0) {
+        birthdayBanner.textContent = "";
+        birthdayBanner.classList.remove("show");
+        return;
+    }
+
+    if (names.length === 1) {
+        birthdayBanner.textContent = `Hoy es el cumpleanos de ${names[0]} y le deseamos un muy feliz cumpleanos.`;
+    } else {
+        const lastName = names[names.length - 1];
+        const firstNames = names.slice(0, -1);
+        const listado = `${firstNames.join(", ")} y ${lastName}`;
+        birthdayBanner.textContent = `Hoy es el cumpleanos de ${listado} y les deseamos un muy feliz cumpleanos.`;
+    }
+
+    birthdayBanner.classList.add("show");
+}
+
 function renderRows(rows) {
     tbody.innerHTML = "";
 
@@ -271,7 +355,7 @@ function filtrarTabla() {
     setStatus(`Mostrando ${visibles} resultado(s).`);
 }
 
-async function cargarCSV() {
+async function cargarInternosCSV() {
     try {
         setStatus("Cargando datos...");
 
@@ -298,9 +382,53 @@ async function cargarCSV() {
     }
 }
 
+async function cargarCumplesCSV() {
+    try {
+        const response = await fetch(CUMPLES_CSV_URL, { cache: "no-store" });
+        if (!response.ok) {
+            throw new Error(`Error HTTP ${response.status}`);
+        }
+
+        const data = await response.text();
+        const filas = parseCSV(data);
+        if (filas.length <= 1) {
+            setBirthdayMessage([]);
+            return;
+        }
+
+        const headers = filas[0].map(normalizeHeader);
+        const idxNombre = headers.findIndex((h) => h === "nombre" || h === "persona");
+        const idxFecha = headers.findIndex((h) => h === "fecha" || h === "fechanacimiento");
+
+        if (idxNombre === -1 || idxFecha === -1) {
+            console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleanos.");
+            setBirthdayMessage([]);
+            return;
+        }
+
+        const today = getDayMonthInTimeZone(TIME_ZONE);
+        const cumpleaneros = [];
+
+        filas.slice(1).forEach((row) => {
+            const nombre = String(row[idxNombre] || "").trim();
+            const fecha = parseBirthdayDayMonth(row[idxFecha]);
+            if (!nombre || !fecha) return;
+
+            if (fecha.day === today.day && fecha.month === today.month) {
+                cumpleaneros.push(nombre);
+            }
+        });
+
+        setBirthdayMessage(cumpleaneros);
+    } catch (error) {
+        console.error("Error al cargar CSV de cumpleanos:", error);
+        setBirthdayMessage([]);
+    }
+}
+
 searchInput.addEventListener("input", filtrarTabla);
 
-cargarCSV();
+Promise.all([cargarInternosCSV(), cargarCumplesCSV()]);
 </script>
 </body>
 </html>
