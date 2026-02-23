@@ -333,14 +333,15 @@ function normalizeHeader(value) {
         .toLowerCase();
 }
 
-function getDayMonthInTimeZone(timeZone) {
+function getDayMonthInTimeZone(timeZone, dayOffset = 0) {
     const formatter = new Intl.DateTimeFormat("es-AR", {
         timeZone,
         day: "2-digit",
         month: "2-digit"
     });
 
-    const parts = formatter.formatToParts(new Date());
+    const shiftedDate = new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000);
+    const parts = formatter.formatToParts(shiftedDate);
     const day = Number(parts.find((p) => p.type === "day").value);
     const month = Number(parts.find((p) => p.type === "month").value);
     return { day, month };
@@ -371,38 +372,61 @@ function parseBirthdayDayMonth(value) {
     return null;
 }
 
-function setBirthdayMessage(names) {
-    if (!Array.isArray(names) || names.length === 0) {
+function formatBirthdayNames(names) {
+    if (names.length === 1) return names[0];
+    const lastName = names[names.length - 1];
+    const firstNames = names.slice(0, -1);
+    return `${firstNames.join(", ")} y ${lastName}`;
+}
+
+function setBirthdayMessage(todayNames, tomorrowNames) {
+    const hasToday = Array.isArray(todayNames) && todayNames.length > 0;
+    const hasTomorrow = Array.isArray(tomorrowNames) && tomorrowNames.length > 0;
+
+    if (!hasToday && !hasTomorrow) {
         birthdayBanner.innerHTML = "";
         birthdayBanner.classList.remove("show");
         return;
     }
 
-    const escapedNames = names.map((name) => escapeHTML(name));
+    const blocks = [];
 
-    if (names.length === 1) {
-        birthdayBanner.innerHTML = `
+    if (hasToday) {
+        const escapedTodayNames = todayNames.map((name) => escapeHTML(name));
+        const listadoHoy = formatBirthdayNames(escapedTodayNames);
+        const textoHoy = escapedTodayNames.length === 1
+            ? "Hoy es el cumpleanos de"
+            : "Hoy son los cumpleanos de";
+        const deseoHoy = escapedTodayNames.length === 1
+            ? "y le deseamos un muy feliz cumpleanos."
+            : "y les deseamos un muy feliz cumpleanos.";
+
+        blocks.push(`
             <span class="birthday-banner-message">
-                <span class="birthday-icon" aria-hidden="true">🎂</span>
-                Hoy es el cumpleaños de <span class="birthday-banner-names">${escapedNames[0]}</span>
-                y le deseamos un muy feliz cumpleanos.
-                <span class="birthday-burst" aria-hidden="true">🎉🎈</span>
+                <span class="birthday-icon" aria-hidden="true">&#127874;</span>
+                ${textoHoy} <span class="birthday-banner-names">${listadoHoy}</span>
+                ${deseoHoy}
+                <span class="birthday-burst" aria-hidden="true">&#127881;&#127880;</span>
             </span>
-        `;
-    } else {
-        const lastName = escapedNames[escapedNames.length - 1];
-        const firstNames = escapedNames.slice(0, -1);
-        const listado = `${firstNames.join(", ")} y ${lastName}`;
-        birthdayBanner.innerHTML = `
-            <span class="birthday-banner-message">
-                <span class="birthday-icon" aria-hidden="true">🎂</span>
-                Hoy es el cumpleanos de <span class="birthday-banner-names">${listado}</span>
-                y les deseamos un muy feliz cumpleanos.
-                <span class="birthday-burst" aria-hidden="true">🎉🎈</span>
-            </span>
-        `;
+        `);
     }
 
+    if (hasTomorrow) {
+        const escapedTomorrowNames = tomorrowNames.map((name) => escapeHTML(name));
+        const listadoManana = formatBirthdayNames(escapedTomorrowNames);
+        const textoManana = escapedTomorrowNames.length === 1
+            ? "Manana es el cumpleanos de"
+            : "Manana son los cumpleanos de";
+
+        blocks.push(`
+            <span class="birthday-banner-message">
+                <span class="birthday-icon" aria-hidden="true">&#127873;</span>
+                ${textoManana} <span class="birthday-banner-names">${listadoManana}</span>.
+            </span>
+        `);
+    }
+
+    birthdayBanner.innerHTML = blocks.join("");
     birthdayBanner.classList.add("show");
 }
 
@@ -474,7 +498,7 @@ async function cargarCumplesCSV() {
         const data = await response.text();
         const filas = parseCSV(data);
         if (filas.length <= 1) {
-            setBirthdayMessage([]);
+            setBirthdayMessage([], []);
             return;
         }
 
@@ -484,12 +508,14 @@ async function cargarCumplesCSV() {
 
         if (idxNombre === -1 || idxFecha === -1) {
             console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleanos.");
-            setBirthdayMessage([]);
+            setBirthdayMessage([], []);
             return;
         }
 
         const today = getDayMonthInTimeZone(TIME_ZONE);
-        const cumpleaneros = [];
+        const tomorrow = getDayMonthInTimeZone(TIME_ZONE, 1);
+        const cumpleanerosHoy = [];
+        const cumpleanerosManana = [];
 
         filas.slice(1).forEach((row) => {
             const nombre = String(row[idxNombre] || "").trim();
@@ -497,14 +523,16 @@ async function cargarCumplesCSV() {
             if (!nombre || !fecha) return;
 
             if (fecha.day === today.day && fecha.month === today.month) {
-                cumpleaneros.push(nombre);
+                cumpleanerosHoy.push(nombre);
+            } else if (fecha.day === tomorrow.day && fecha.month === tomorrow.month) {
+                cumpleanerosManana.push(nombre);
             }
         });
 
-        setBirthdayMessage(cumpleaneros);
+        setBirthdayMessage(cumpleanerosHoy, cumpleanerosManana);
     } catch (error) {
         console.error("Error al cargar CSV de cumpleanos:", error);
-        setBirthdayMessage([]);
+        setBirthdayMessage([], []);
     }
 }
 
