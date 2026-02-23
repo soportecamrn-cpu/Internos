@@ -10,8 +10,8 @@
         --surface: #ffffff;
         --text: #1f2937;
         --muted: #6b7280;
-        --primary: #1976d2;
-        --primary-dark: #115293;
+        --primary: #068a3f;
+        --primary-dark: #046b30;
         --border: #d1d5db;
         --hover: #f3f4f6;
         --danger: #b91c1c;
@@ -43,16 +43,70 @@
     .birthday-banner {
         display: none;
         margin: 0 0 14px 0;
-        padding: 12px 14px;
-        border: 1px solid #fde68a;
-        background: #fffbeb;
-        color: #92400e;
-        border-radius: 8px;
-        font-size: 15px;
+        padding: 18px 16px;
+        border: 1px solid #068a3f;
+        background: linear-gradient(135deg, #ecfdf3 0%, #c9f3da 45%, #9ae6ba 100%);
+        color: #064e2a;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 8px 22px rgba(6, 138, 63, 0.22);
+        position: relative;
+        overflow: hidden;
+        animation: birthdayPulse 2.6s ease-in-out infinite;
     }
 
     .birthday-banner.show {
         display: block;
+    }
+
+    .birthday-banner::before {
+        content: "";
+        position: absolute;
+        inset: -20% -10%;
+        background: repeating-linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.35) 0px,
+            rgba(255, 255, 255, 0.35) 8px,
+            rgba(255, 255, 255, 0) 8px,
+            rgba(255, 255, 255, 0) 18px
+        );
+        transform: translateX(-35%);
+        animation: confettiMove 5s linear infinite;
+        pointer-events: none;
+    }
+
+    .birthday-banner-message {
+        position: relative;
+        z-index: 1;
+        line-height: 1.45;
+    }
+
+    .birthday-banner-names {
+        font-weight: 800;
+        color: #065f2f;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    @keyframes confettiMove {
+        0% {
+            transform: translateX(-35%);
+        }
+        100% {
+            transform: translateX(35%);
+        }
+    }
+
+    @keyframes birthdayPulse {
+        0% {
+            box-shadow: 0 8px 22px rgba(6, 138, 63, 0.2);
+        }
+        50% {
+            box-shadow: 0 12px 26px rgba(6, 138, 63, 0.32);
+        }
+        100% {
+            box-shadow: 0 8px 22px rgba(6, 138, 63, 0.2);
+        }
     }
 
     .controls {
@@ -307,18 +361,30 @@ function parseBirthdayDayMonth(value) {
 
 function setBirthdayMessage(names) {
     if (!Array.isArray(names) || names.length === 0) {
-        birthdayBanner.textContent = "";
+        birthdayBanner.innerHTML = "";
         birthdayBanner.classList.remove("show");
         return;
     }
 
+    const escapedNames = names.map((name) => escapeHTML(name));
+
     if (names.length === 1) {
-        birthdayBanner.textContent = `Hoy es el cumpleanos de ${names[0]} y le deseamos un muy feliz cumpleanos.`;
+        birthdayBanner.innerHTML = `
+            <span class="birthday-banner-message">
+                Hoy es el cumpleanos de <span class="birthday-banner-names">${escapedNames[0]}</span>
+                y le deseamos un muy feliz cumpleanos.
+            </span>
+        `;
     } else {
-        const lastName = names[names.length - 1];
-        const firstNames = names.slice(0, -1);
+        const lastName = escapedNames[escapedNames.length - 1];
+        const firstNames = escapedNames.slice(0, -1);
         const listado = `${firstNames.join(", ")} y ${lastName}`;
-        birthdayBanner.textContent = `Hoy es el cumpleanos de ${listado} y les deseamos un muy feliz cumpleanos.`;
+        birthdayBanner.innerHTML = `
+            <span class="birthday-banner-message">
+                Hoy es el cumpleanos de <span class="birthday-banner-names">${listado}</span>
+                y les deseamos un muy feliz cumpleanos.
+            </span>
+        `;
     }
 
     birthdayBanner.classList.add("show");
