@@ -415,8 +415,8 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
         const escapedTomorrowNames = tomorrowNames.map((name) => escapeHTML(name));
         const listadoManana = formatBirthdayNames(escapedTomorrowNames);
         const textoManana = escapedTomorrowNames.length === 1
-            ? "Manana es el cumpleanos de"
-            : "Manana son los cumpleanos de";
+            ? "Manaña es el cumpleaños de"
+            : "Manaña son los cumpleaños de";
 
         blocks.push(`
             <span class="birthday-banner-message">
@@ -507,7 +507,7 @@ async function cargarCumplesCSV() {
         const idxFecha = headers.findIndex((h) => h === "fecha" || h === "fechanacimiento");
 
         if (idxNombre === -1 || idxFecha === -1) {
-            console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleanos.");
+            console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleaños.");
             setBirthdayMessage([], []);
             return;
         }
