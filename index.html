@@ -82,10 +82,22 @@
         line-height: 1.45;
     }
 
+    .birthday-icon {
+        font-size: 22px;
+        margin-right: 8px;
+        vertical-align: -2px;
+    }
+
     .birthday-banner-names {
         font-weight: 800;
         color: #065f2f;
         text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .birthday-burst {
+        margin-left: 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
     }
 
     @keyframes confettiMove {
@@ -371,8 +383,10 @@ function setBirthdayMessage(names) {
     if (names.length === 1) {
         birthdayBanner.innerHTML = `
             <span class="birthday-banner-message">
-                Hoy es el cumpleanos de <span class="birthday-banner-names">${escapedNames[0]}</span>
+                <span class="birthday-icon" aria-hidden="true">🎂</span>
+                Hoy es el cumpleaños de <span class="birthday-banner-names">${escapedNames[0]}</span>
                 y le deseamos un muy feliz cumpleanos.
+                <span class="birthday-burst" aria-hidden="true">🎉🎈</span>
             </span>
         `;
     } else {
@@ -381,8 +395,10 @@ function setBirthdayMessage(names) {
         const listado = `${firstNames.join(", ")} y ${lastName}`;
         birthdayBanner.innerHTML = `
             <span class="birthday-banner-message">
+                <span class="birthday-icon" aria-hidden="true">🎂</span>
                 Hoy es el cumpleanos de <span class="birthday-banner-names">${listado}</span>
                 y les deseamos un muy feliz cumpleanos.
+                <span class="birthday-burst" aria-hidden="true">🎉🎈</span>
             </span>
         `;
     }
