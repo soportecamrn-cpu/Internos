@@ -395,11 +395,11 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
         const escapedTodayNames = todayNames.map((name) => escapeHTML(name));
         const listadoHoy = formatBirthdayNames(escapedTodayNames);
         const textoHoy = escapedTodayNames.length === 1
-            ? "Hoy es el cumpleanos de"
-            : "Hoy son los cumpleanos de";
+            ? "Hoy es el cumpleaños de"
+            : "Hoy son los cumpleaños de";
         const deseoHoy = escapedTodayNames.length === 1
-            ? "y le deseamos un muy feliz cumpleanos."
-            : "y les deseamos un muy feliz cumpleanos.";
+            ? "y le deseamos un muy feliz cumpleaños."
+            : "y les deseamos un muy feliz cumpleaños.";
 
         blocks.push(`
             <span class="birthday-banner-message">
@@ -531,7 +531,7 @@ async function cargarCumplesCSV() {
 
         setBirthdayMessage(cumpleanerosHoy, cumpleanerosManana);
     } catch (error) {
-        console.error("Error al cargar CSV de cumpleanos:", error);
+        console.error("Error al cargar CSV de cumpleaños:", error);
         setBirthdayMessage([], []);
     }
 }
