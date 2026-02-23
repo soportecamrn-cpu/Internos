@@ -415,8 +415,8 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
         const escapedTomorrowNames = tomorrowNames.map((name) => escapeHTML(name));
         const listadoManana = formatBirthdayNames(escapedTomorrowNames);
         const textoManana = escapedTomorrowNames.length === 1
-            ? "Manaña es el cumpleaños de"
-            : "Manaña son los cumpleaños de";
+            ? "Mañana sera el cumpleaños de"
+            : "Mañana seran los cumpleaños de";
 
         blocks.push(`
             <span class="birthday-banner-message">
