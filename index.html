@@ -121,6 +121,68 @@
         }
     }
 
+    .news-panel {
+        margin: 0 0 14px 0;
+        padding: 14px;
+        border: 1px solid #cde8d8;
+        background: #f9fffb;
+        border-radius: 12px;
+    }
+
+    .news-header {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        color: #065f2f;
+    }
+
+    .news-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .news-item {
+        padding: 10px 12px;
+        border: 1px solid #d8e7de;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .news-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .news-detail {
+        margin: 6px 0 0 0;
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.35;
+    }
+
+    .news-link {
+        margin-top: 8px;
+        display: inline-block;
+        color: #046b30;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .news-link:hover {
+        text-decoration: underline;
+    }
+
+    .news-empty {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
     .controls {
         display: grid;
         gap: 10px;
@@ -219,6 +281,12 @@
     <h1>Listado de Internos</h1>
     <p id="birthdayBanner" class="birthday-banner" role="status" aria-live="polite"></p>
 
+    <section class="news-panel" aria-labelledby="newsTitle">
+        <h2 id="newsTitle" class="news-header">Noticias</h2>
+        <ul id="newsList" class="news-list"></ul>
+        <p id="newsEmpty" class="news-empty" hidden>No hay novedades para hoy.</p>
+    </section>
+
     <section class="controls">
         <label for="search">Buscar por interno, persona o sector</label>
         <input
@@ -256,12 +324,15 @@
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCSYe75_r2Etckwzz2kpIaCvbfM-2qV8Vt8tE9gA4jrLy3odgE4GSJvRHyNKpDGg/pub?output=csv";
 const CUMPLES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSr04sWruawDgNSQNV5HHev94ZQgu9k6hT51c9JOvvvIQV2ggCglc6ZSSG_iBHiTfzYniY842GDuNam/pub?output=csv";
+const NOTICIAS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGnxz9mtk8bAld5bHKH7pj4Jz6hDPFHpNKsXBPENRpAZl8FVAzllCMCHE2jZPu-8kpiamQJSkbSnTe/pub?output=csv";
 const TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 const tbody = document.querySelector("#tabla tbody");
 const statusEl = document.getElementById("status");
 const searchInput = document.getElementById("search");
 const birthdayBanner = document.getElementById("birthdayBanner");
+const newsListEl = document.getElementById("newsList");
+const newsEmptyEl = document.getElementById("newsEmpty");
 
 function setStatus(message, isError = false) {
     statusEl.textContent = message;
@@ -345,6 +416,71 @@ function getDayMonthInTimeZone(timeZone, dayOffset = 0) {
     const day = Number(parts.find((p) => p.type === "day").value);
     const month = Number(parts.find((p) => p.type === "month").value);
     return { day, month };
+}
+
+function getDateKeyInTimeZone(timeZone, dayOffset = 0) {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    });
+    const shiftedDate = new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000);
+    return formatter.format(shiftedDate);
+}
+
+function parseDateKey(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    let match = raw.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+    if (match) {
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        }
+        return "";
+    }
+
+    match = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    if (match) {
+        const day = Number(match[1]);
+        const month = Number(match[2]);
+        const year = Number(match[3]);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        }
+    }
+
+    return "";
+}
+
+function isTruthyFlag(value) {
+    const normalized = normalizeHeader(String(value || ""));
+    return normalized === "si" || normalized === "sí" || normalized === "true" || normalized === "1";
+}
+
+function renderNoticias(items) {
+    newsListEl.innerHTML = "";
+    newsEmptyEl.hidden = items.length > 0;
+
+    items.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "news-item";
+
+        const safeTitle = escapeHTML(item.titulo || "Sin titulo");
+        const safeDetail = escapeHTML(item.detalle || "");
+        const safeLink = escapeHTML(item.link || "");
+
+        li.innerHTML = `
+            <p class="news-title">${safeTitle}</p>
+            ${safeDetail ? `<p class="news-detail">${safeDetail}</p>` : ""}
+            ${safeLink ? `<a class="news-link" href="${safeLink}" target="_blank" rel="noopener noreferrer">Ver mas</a>` : ""}
+        `;
+        newsListEl.appendChild(li);
+    });
 }
 
 function parseBirthdayDayMonth(value) {
@@ -536,9 +672,56 @@ async function cargarCumplesCSV() {
     }
 }
 
+async function cargarNoticiasCSV() {
+    try {
+        const response = await fetch(NOTICIAS_CSV_URL, { cache: "no-store" });
+        if (!response.ok) {
+            throw new Error(`Error HTTP ${response.status}`);
+        }
+
+        const data = await response.text();
+        const filas = parseCSV(data);
+        if (filas.length <= 1) {
+            renderNoticias([]);
+            return;
+        }
+
+        const headers = filas[0].map(normalizeHeader);
+        const idxFechaFin = headers.findIndex((h) => h === "fecha_fin" || h === "fechafin");
+        const idxTitulo = headers.findIndex((h) => h === "titulo" || h === "noticia");
+        const idxDetalle = headers.findIndex((h) => h === "detalle" || h === "descripcion");
+        const idxActivo = headers.findIndex((h) => h === "activo");
+        const idxLink = headers.findIndex((h) => h === "link" || h === "enlace" || h === "url");
+
+        if (idxFechaFin === -1 || idxActivo === -1) {
+            console.warn("Faltan columnas requeridas (fecha_fin/activo) en el CSV de noticias.");
+            renderNoticias([]);
+            return;
+        }
+
+        const todayKey = getDateKeyInTimeZone(TIME_ZONE);
+        const noticiasVigentes = filas.slice(1).map((row) => {
+            const endKey = idxFechaFin >= 0 ? parseDateKey(row[idxFechaFin]) : "";
+            const titulo = String(row[idxTitulo] || "").trim();
+            const detalle = idxDetalle >= 0 ? String(row[idxDetalle] || "").trim() : "";
+            const link = idxLink >= 0 ? String(row[idxLink] || "").trim() : "";
+            const activo = isTruthyFlag(row[idxActivo]);
+            return { endKey, titulo, detalle, link, activo };
+        }).filter((item) => {
+            if (!item.activo || !item.endKey) return false;
+            return todayKey <= item.endKey;
+        }).sort((a, b) => a.endKey.localeCompare(b.endKey));
+
+        renderNoticias(noticiasVigentes.slice(0, 5));
+    } catch (error) {
+        console.error("Error al cargar CSV de noticias:", error);
+        renderNoticias([]);
+    }
+}
+
 searchInput.addEventListener("input", filtrarTabla);
 
-Promise.all([cargarInternosCSV(), cargarCumplesCSV()]);
+Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
 </script>
 </body>
 </html>
