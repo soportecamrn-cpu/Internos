@@ -124,15 +124,15 @@
     .news-panel {
         margin: 0 0 14px 0;
         padding: 14px;
-        border: 1px solid #cde8d8;
-        background: #f9fffb;
+        border: 1px solid #f5c2e3;
+        background: #fff4fb;
         border-radius: 12px;
     }
 
     .news-header {
         margin: 0 0 10px 0;
         font-size: 18px;
-        color: #065f2f;
+        color: #e654b5;
     }
 
     .news-list {
@@ -145,7 +145,7 @@
 
     .news-item {
         padding: 10px 12px;
-        border: 1px solid #d8e7de;
+        border: 1px solid #f3d3e8;
         border-radius: 10px;
         background: #ffffff;
     }
@@ -167,7 +167,7 @@
     .news-link {
         margin-top: 8px;
         display: inline-block;
-        color: #046b30;
+        color: #c83a98;
         font-size: 14px;
         font-weight: 600;
         text-decoration: none;
@@ -459,7 +459,7 @@ function parseDateKey(value) {
 
 function isTruthyFlag(value) {
     const normalized = normalizeHeader(String(value || ""));
-    return normalized === "si" || normalized === "sí" || normalized === "true" || normalized === "1";
+    return normalized === "si" || normalized === "sÃ­" || normalized === "true" || normalized === "1";
 }
 
 function renderNoticias(items) {
@@ -531,11 +531,11 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
         const escapedTodayNames = todayNames.map((name) => escapeHTML(name));
         const listadoHoy = formatBirthdayNames(escapedTodayNames);
         const textoHoy = escapedTodayNames.length === 1
-            ? "Hoy es el cumpleaños de"
-            : "Hoy son los cumpleaños de";
+            ? "Hoy es el cumpleaÃ±os de"
+            : "Hoy son los cumpleaÃ±os de";
         const deseoHoy = escapedTodayNames.length === 1
-            ? "y le deseamos un muy Feliz Cumpleaños."
-            : "y les deseamos un muy Feliz Cumpleaños.";
+            ? "y le deseamos un muy Feliz CumpleaÃ±os."
+            : "y les deseamos un muy Feliz CumpleaÃ±os.";
 
         blocks.push(`
             <span class="birthday-banner-message">
@@ -551,8 +551,8 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
         const escapedTomorrowNames = tomorrowNames.map((name) => escapeHTML(name));
         const listadoManana = formatBirthdayNames(escapedTomorrowNames);
         const textoManana = escapedTomorrowNames.length === 1
-            ? "Mañana sera el cumpleaños de"
-            : "Mañana seran los cumpleaños de";
+            ? "MaÃ±ana sera el cumpleaÃ±os de"
+            : "MaÃ±ana seran los cumpleaÃ±os de";
 
         blocks.push(`
             <span class="birthday-banner-message">
@@ -643,7 +643,7 @@ async function cargarCumplesCSV() {
         const idxFecha = headers.findIndex((h) => h === "fecha" || h === "fechanacimiento");
 
         if (idxNombre === -1 || idxFecha === -1) {
-            console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleaños.");
+            console.warn("No se encontraron columnas nombre/fecha en el CSV de cumpleaÃ±os.");
             setBirthdayMessage([], []);
             return;
         }
@@ -667,7 +667,7 @@ async function cargarCumplesCSV() {
 
         setBirthdayMessage(cumpleanerosHoy, cumpleanerosManana);
     } catch (error) {
-        console.error("Error al cargar CSV de cumpleaños:", error);
+        console.error("Error al cargar CSV de cumpleaÃ±os:", error);
         setBirthdayMessage([], []);
     }
 }
@@ -725,3 +725,5 @@ Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
 </script>
 </body>
 </html>
+
+
