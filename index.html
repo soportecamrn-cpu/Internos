@@ -249,6 +249,27 @@
         justify-content: center;
     }
 
+    .useful-links {
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .useful-links h2 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        color: var(--text);
+    }
+
+    .useful-links-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
     .button {
         padding: 10px 20px;
         background: var(--primary);
@@ -273,11 +294,45 @@
         th, td {
             font-size: 14px;
         }
+
+        .useful-links-grid {
+            flex-direction: column;
+        }
     }
 </style>
 </head>
 <body>
 <main class="container">
+    <section class="useful-links" aria-labelledby="usefulLinksTitle">
+        <h2 id="usefulLinksTitle">Accesos utiles</h2>
+        <div class="useful-links-grid">
+            <a
+                class="button"
+                href="https://www.ilovepdf.com/es/pdf_a_excel"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                PDF a Excel
+            </a>
+            <a
+                class="button"
+                href="https://www.ilovepdf.com/es/unir_pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Unir PDF
+            </a>
+            <a
+                class="button"
+                href="https://www.ilovepdf.com/es/jpg_a_pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                JPG a PDF
+            </a>
+        </div>
+    </section>
+
     <h1>Listado de Internos</h1>
     <p id="birthdayBanner" class="birthday-banner" role="status" aria-live="polite"></p>
 
@@ -319,6 +374,7 @@
             Administrador.
         </a>
     </section>
+
 </main>
 
 <script>
@@ -725,7 +781,5 @@ Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
 </script>
 </body>
 </html>
-
-
 
 
