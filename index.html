@@ -199,28 +199,6 @@
         color: var(--muted);
     }
 
-    .quick-filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .filter-chip {
-        padding: 8px 14px;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        background: #f9fafb;
-        color: var(--text);
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .filter-chip.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-
     #search {
         width: 100%;
         padding: 10px 12px;
@@ -327,12 +305,6 @@
         background: var(--primary-dark);
     }
 
-    .copy-button {
-        padding: 6px 10px;
-        font-size: 13px;
-        border-radius: 6px;
-    }
-
     @media (max-width: 640px) {
         body {
             padding: 12px;
@@ -343,10 +315,6 @@
         }
 
         .useful-links-grid {
-            flex-direction: column;
-        }
-
-        .quick-filters {
             flex-direction: column;
         }
     }
@@ -401,7 +369,6 @@
             placeholder="Escribi para filtrar resultados..."
             autocomplete="off"
         >
-        <div id="sectorFilters" class="quick-filters" aria-label="Filtros por sector"></div>
         <p id="status" class="status" role="status" aria-live="polite"></p>
     </section>
 
@@ -411,7 +378,6 @@
                 <th class="sortable" data-sort-key="interno">Interno</th>
                 <th class="sortable" data-sort-key="persona">Persona</th>
                 <th class="sortable" data-sort-key="sector">Sector</th>
-                <th>Accion</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -442,11 +408,9 @@ const searchInput = document.getElementById("search");
 const birthdayBanner = document.getElementById("birthdayBanner");
 const newsListEl = document.getElementById("newsList");
 const newsEmptyEl = document.getElementById("newsEmpty");
-const sectorFiltersEl = document.getElementById("sectorFilters");
 const sortableHeaders = document.querySelectorAll("th.sortable");
 
 let internosRows = [];
-let currentSectorFilter = "";
 let currentSort = {
     key: "interno",
     direction: "asc"
@@ -703,55 +667,13 @@ function getVisibleRows() {
 
     return internosRows
         .filter((row) => {
-            const matchesSector = !currentSectorFilter || row.sector === currentSectorFilter;
             const haystack = `${row.interno} ${row.persona} ${row.sector}`.toLowerCase();
-            return matchesSector && haystack.includes(filtro);
+            return haystack.includes(filtro);
         })
         .sort((a, b) => {
             const result = compareValues(a, b, currentSort.key);
             return currentSort.direction === "asc" ? result : -result;
         });
-}
-
-function renderSectorFilters(rows) {
-    const sectors = [...new Set(rows.map((row) => row.sector).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
-
-    sectorFiltersEl.innerHTML = "";
-
-    const allButton = document.createElement("button");
-    allButton.type = "button";
-    allButton.className = `filter-chip${currentSectorFilter ? "" : " active"}`;
-    allButton.textContent = "Todos";
-    allButton.addEventListener("click", () => {
-        currentSectorFilter = "";
-        renderSectorFilters(internosRows);
-        filtrarTabla();
-    });
-    sectorFiltersEl.appendChild(allButton);
-
-    sectors.forEach((sector) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = `filter-chip${currentSectorFilter === sector ? " active" : ""}`;
-        button.textContent = sector;
-        button.addEventListener("click", () => {
-            currentSectorFilter = sector;
-            renderSectorFilters(internosRows);
-            filtrarTabla();
-        });
-        sectorFiltersEl.appendChild(button);
-    });
-}
-
-async function copyInterno(value) {
-    try {
-        await navigator.clipboard.writeText(String(value || ""));
-        setStatus(`Interno ${value} copiado.`);
-    } catch (error) {
-        setStatus("No se pudo copiar el interno.", true);
-        console.error("Error al copiar interno:", error);
-    }
 }
 
 function renderRows(rows) {
@@ -763,21 +685,15 @@ function renderRows(rows) {
             <td>${escapeHTML(row.interno)}</td>
             <td>${escapeHTML(row.persona)}</td>
             <td>${escapeHTML(row.sector)}</td>
-            <td><button type="button" class="button copy-button" data-interno="${escapeHTML(row.interno)}">Copiar</button></td>
         `;
         tbody.appendChild(tr);
-    });
-
-    tbody.querySelectorAll(".copy-button").forEach((button) => {
-        button.addEventListener("click", () => copyInterno(button.dataset.interno || ""));
     });
 }
 
 function filtrarTabla() {
     const visibles = getVisibleRows();
     renderRows(visibles);
-    const sectorTexto = currentSectorFilter ? ` en ${currentSectorFilter}` : "";
-    setStatus(`Mostrando ${visibles.length} resultado(s)${sectorTexto}.`);
+    setStatus(`Mostrando ${visibles.length} resultado(s).`);
 }
 
 function updateSortHeaders() {
@@ -815,7 +731,6 @@ async function cargarInternosCSV() {
                 sector: String(row[2] || "").trim()
             }));
 
-        renderSectorFilters(internosRows);
         updateSortHeaders();
         filtrarTabla();
     } catch (error) {
