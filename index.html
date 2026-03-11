@@ -199,6 +199,28 @@
         color: var(--muted);
     }
 
+    .quick-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filter-chip {
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f9fafb;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .filter-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
     #search {
         width: 100%;
         padding: 10px 12px;
@@ -237,6 +259,15 @@
         padding: 12px;
         font-size: 16px;
         text-align: left;
+    }
+
+    th.sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    th.sortable:hover {
+        background: var(--primary-dark);
     }
 
     td {
@@ -296,6 +327,12 @@
         background: var(--primary-dark);
     }
 
+    .copy-button {
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 6px;
+    }
+
     @media (max-width: 640px) {
         body {
             padding: 12px;
@@ -306,6 +343,10 @@
         }
 
         .useful-links-grid {
+            flex-direction: column;
+        }
+
+        .quick-filters {
             flex-direction: column;
         }
     }
@@ -360,15 +401,17 @@
             placeholder="Escribi para filtrar resultados..."
             autocomplete="off"
         >
+        <div id="sectorFilters" class="quick-filters" aria-label="Filtros por sector"></div>
         <p id="status" class="status" role="status" aria-live="polite"></p>
     </section>
 
     <table id="tabla">
         <thead>
             <tr>
-                <th>Interno</th>
-                <th>Persona</th>
-                <th>Sector</th>
+                <th class="sortable" data-sort-key="interno">Interno</th>
+                <th class="sortable" data-sort-key="persona">Persona</th>
+                <th class="sortable" data-sort-key="sector">Sector</th>
+                <th>Accion</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -399,6 +442,15 @@ const searchInput = document.getElementById("search");
 const birthdayBanner = document.getElementById("birthdayBanner");
 const newsListEl = document.getElementById("newsList");
 const newsEmptyEl = document.getElementById("newsEmpty");
+const sectorFiltersEl = document.getElementById("sectorFilters");
+const sortableHeaders = document.querySelectorAll("th.sortable");
+
+let internosRows = [];
+let currentSectorFilter = "";
+let currentSort = {
+    key: "interno",
+    direction: "asc"
+};
 
 function setStatus(message, isError = false) {
     statusEl.textContent = message;
@@ -632,35 +684,109 @@ function setBirthdayMessage(todayNames, tomorrowNames) {
     birthdayBanner.classList.add("show");
 }
 
+function compareValues(a, b, key) {
+    const valueA = String(a[key] || "").trim();
+    const valueB = String(b[key] || "").trim();
+
+    if (key === "interno") {
+        const numA = Number(valueA);
+        const numB = Number(valueB);
+        const bothNumeric = !Number.isNaN(numA) && !Number.isNaN(numB);
+        if (bothNumeric) return numA - numB;
+    }
+
+    return valueA.localeCompare(valueB, "es", { sensitivity: "base" });
+}
+
+function getVisibleRows() {
+    const filtro = searchInput.value.toLowerCase().trim();
+
+    return internosRows
+        .filter((row) => {
+            const matchesSector = !currentSectorFilter || row.sector === currentSectorFilter;
+            const haystack = `${row.interno} ${row.persona} ${row.sector}`.toLowerCase();
+            return matchesSector && haystack.includes(filtro);
+        })
+        .sort((a, b) => {
+            const result = compareValues(a, b, currentSort.key);
+            return currentSort.direction === "asc" ? result : -result;
+        });
+}
+
+function renderSectorFilters(rows) {
+    const sectors = [...new Set(rows.map((row) => row.sector).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+    sectorFiltersEl.innerHTML = "";
+
+    const allButton = document.createElement("button");
+    allButton.type = "button";
+    allButton.className = `filter-chip${currentSectorFilter ? "" : " active"}`;
+    allButton.textContent = "Todos";
+    allButton.addEventListener("click", () => {
+        currentSectorFilter = "";
+        renderSectorFilters(internosRows);
+        filtrarTabla();
+    });
+    sectorFiltersEl.appendChild(allButton);
+
+    sectors.forEach((sector) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `filter-chip${currentSectorFilter === sector ? " active" : ""}`;
+        button.textContent = sector;
+        button.addEventListener("click", () => {
+            currentSectorFilter = sector;
+            renderSectorFilters(internosRows);
+            filtrarTabla();
+        });
+        sectorFiltersEl.appendChild(button);
+    });
+}
+
+async function copyInterno(value) {
+    try {
+        await navigator.clipboard.writeText(String(value || ""));
+        setStatus(`Interno ${value} copiado.`);
+    } catch (error) {
+        setStatus("No se pudo copiar el interno.", true);
+        console.error("Error al copiar interno:", error);
+    }
+}
+
 function renderRows(rows) {
     tbody.innerHTML = "";
 
     rows.forEach((row) => {
-        if (row.length < 3) return;
-
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${escapeHTML(row[0])}</td>
-            <td>${escapeHTML(row[1])}</td>
-            <td>${escapeHTML(row[2])}</td>
+            <td>${escapeHTML(row.interno)}</td>
+            <td>${escapeHTML(row.persona)}</td>
+            <td>${escapeHTML(row.sector)}</td>
+            <td><button type="button" class="button copy-button" data-interno="${escapeHTML(row.interno)}">Copiar</button></td>
         `;
         tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll(".copy-button").forEach((button) => {
+        button.addEventListener("click", () => copyInterno(button.dataset.interno || ""));
     });
 }
 
 function filtrarTabla() {
-    const filtro = searchInput.value.toLowerCase().trim();
-    const filas = document.querySelectorAll("#tabla tbody tr");
+    const visibles = getVisibleRows();
+    renderRows(visibles);
+    const sectorTexto = currentSectorFilter ? ` en ${currentSectorFilter}` : "";
+    setStatus(`Mostrando ${visibles.length} resultado(s)${sectorTexto}.`);
+}
 
-    let visibles = 0;
-    filas.forEach((fila) => {
-        const texto = fila.textContent.toLowerCase();
-        const mostrar = texto.includes(filtro);
-        fila.style.display = mostrar ? "" : "none";
-        if (mostrar) visibles += 1;
+function updateSortHeaders() {
+    sortableHeaders.forEach((header) => {
+        const key = header.dataset.sortKey;
+        const active = key === currentSort.key;
+        const arrow = active ? (currentSort.direction === "asc" ? " ▲" : " ▼") : "";
+        header.textContent = `${header.dataset.baseLabel}${arrow}`;
     });
-
-    setStatus(`Mostrando ${visibles} resultado(s).`);
 }
 
 async function cargarInternosCSV() {
@@ -681,7 +807,16 @@ async function cargarInternosCSV() {
             return;
         }
 
-        renderRows(filas.slice(1));
+        internosRows = filas.slice(1)
+            .filter((row) => row.length >= 3)
+            .map((row) => ({
+                interno: String(row[0] || "").trim(),
+                persona: String(row[1] || "").trim(),
+                sector: String(row[2] || "").trim()
+            }));
+
+        renderSectorFilters(internosRows);
+        updateSortHeaders();
         filtrarTabla();
     } catch (error) {
         tbody.innerHTML = "";
@@ -787,8 +922,25 @@ async function cargarNoticiasCSV() {
 
 searchInput.addEventListener("input", filtrarTabla);
 
+sortableHeaders.forEach((header) => {
+    header.dataset.baseLabel = header.textContent.trim();
+    header.addEventListener("click", () => {
+        const key = header.dataset.sortKey;
+        if (!key) return;
+
+        if (currentSort.key === key) {
+            currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+            currentSort.key = key;
+            currentSort.direction = "asc";
+        }
+
+        updateSortHeaders();
+        filtrarTabla();
+    });
+});
+
 Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
 </script>
 </body>
 </html>
-
