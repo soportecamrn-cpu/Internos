@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administrador</title>
+<style>
+    :root {
+        --primary: #0f766e;
+        --primary-dark: #115e59;
+        --background: #f3f7f7;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #d7e0e0;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(180deg, #ecfeff 0%, var(--background) 100%);
+        color: var(--text);
+    }
+
+    .panel {
+        width: min(100%, 640px);
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--surface);
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-size: clamp(28px, 5vw, 36px);
+        text-align: center;
+    }
+
+    p {
+        margin: 0 0 22px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 16px;
+    }
+
+    .buttons {
+        display: grid;
+        gap: 12px;
+    }
+
+    .button {
+        padding: 14px 18px;
+        border: none;
+        border-radius: 12px;
+        background: var(--primary);
+        color: #ffffff;
+        text-decoration: none;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 18px;
+        color: var(--primary-dark);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+<main class="panel">
+    <h1>Administrador</h1>
+    <p>Elegí el acceso que querés abrir.</p>
+
+    <section class="buttons" aria-label="Accesos de administrador">
+        <a
+            class="button"
+            href="https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Internos
+        </a>
+        <a
+            class="button"
+            href="https://docs.google.com/spreadsheets/d/1YMW_yESJjFRJZwzFyp7GByOfrO5eX_KEEKkmMR5M-24/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Cumpleaños
+        </a>
+        <a
+            class="button"
+            href="https://docs.google.com/spreadsheets/d/10zTVRgOTQ_aIZvbSOlE3tPaN2Ug4I1LrRxQKasGHph0/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Noticias
+        </a>
+    </section>
+
+    <a class="back-link" href="./Index.html">Volver al listado</a>
+</main>
+</body>
+</html>
