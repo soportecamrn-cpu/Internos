@@ -351,6 +351,22 @@
             >
                 JPG a PDF
             </a>
+            <a
+                class="button"
+                href="https://camionerosrionegro.org.ar/"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Web Camioneros
+            </a>
+            <button
+                type="button"
+                id="radioButton"
+                class="button"
+                aria-pressed="false"
+            >
+                Reproducir Radio
+            </button>
         </div>
     </section>
 
@@ -407,6 +423,7 @@ const birthdayBanner = document.getElementById("birthdayBanner");
 const newsListEl = document.getElementById("newsList");
 const newsEmptyEl = document.getElementById("newsEmpty");
 const sortableHeaders = document.querySelectorAll("th.sortable");
+const radioButton = document.getElementById("radioButton");
 
 let internosRows = [];
 let currentSort = {
@@ -416,6 +433,14 @@ let currentSort = {
 
 const ADMIN_URL = "https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing";
 const ADMIN_PASSWORD = "Peru86";
+const RADIO_STREAM_URL = "https://streaming3.locucionar.com/proxy/lacarretera740?mp=/stream";
+const radioPlayer = new Audio(RADIO_STREAM_URL);
+radioPlayer.preload = "none";
+
+function updateRadioButton(isPlaying) {
+    radioButton.textContent = isPlaying ? "Pausar Radio" : "Reproducir Radio";
+    radioButton.setAttribute("aria-pressed", String(isPlaying));
+}
 
 function setStatus(message, isError = false) {
     statusEl.textContent = message;
@@ -863,6 +888,35 @@ document.getElementById("adminButton").addEventListener("click", () => {
     } else if (password !== null) {
         alert("Contraseña incorrecta.");
     }
+});
+
+radioButton.addEventListener("click", async () => {
+    if (!radioPlayer.paused) {
+        radioPlayer.pause();
+        updateRadioButton(false);
+        return;
+    }
+
+    try {
+        await radioPlayer.play();
+        updateRadioButton(true);
+    } catch (error) {
+        console.error("No se pudo reproducir la radio:", error);
+        alert("No se pudo reproducir la radio en este momento.");
+        updateRadioButton(false);
+    }
+});
+
+radioPlayer.addEventListener("pause", () => {
+    updateRadioButton(false);
+});
+
+radioPlayer.addEventListener("play", () => {
+    updateRadioButton(true);
+});
+
+radioPlayer.addEventListener("error", () => {
+    updateRadioButton(false);
 });
 
 Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
