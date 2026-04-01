@@ -298,11 +298,35 @@
         font-size: 16px;
         cursor: pointer;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     .button:hover {
         background: var(--primary-dark);
+    }
+
+    .radio-button {
+        padding: 10px 18px;
+    }
+
+    .radio-icon {
+        width: 14px;
+        height: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.85;
+        flex-shrink: 0;
+    }
+
+    .radio-icon svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+        fill: currentColor;
     }
 
     @media (max-width: 640px) {
@@ -362,10 +386,15 @@
             <button
                 type="button"
                 id="radioButton"
-                class="button"
+                class="button radio-button"
                 aria-pressed="false"
             >
-                Reproducir Radio
+                <span class="radio-icon" id="radioIcon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+                        <path d="M5 3.5v9l7-4.5-7-4.5Z"></path>
+                    </svg>
+                </span>
+                <span id="radioLabel">Reproducir Radio</span>
             </button>
         </div>
     </section>
@@ -424,6 +453,8 @@ const newsListEl = document.getElementById("newsList");
 const newsEmptyEl = document.getElementById("newsEmpty");
 const sortableHeaders = document.querySelectorAll("th.sortable");
 const radioButton = document.getElementById("radioButton");
+const radioIcon = document.getElementById("radioIcon");
+const radioLabel = document.getElementById("radioLabel");
 
 let internosRows = [];
 let currentSort = {
@@ -436,9 +467,12 @@ const ADMIN_PASSWORD = "Peru86";
 const RADIO_STREAM_URL = "https://streaming3.locucionar.com/proxy/lacarretera740?mp=/stream";
 const radioPlayer = new Audio(RADIO_STREAM_URL);
 radioPlayer.preload = "none";
+const PLAY_ICON = '<svg viewBox="0 0 16 16" focusable="false" aria-hidden="true"><path d="M5 3.5v9l7-4.5-7-4.5Z"></path></svg>';
+const PAUSE_ICON = '<svg viewBox="0 0 16 16" focusable="false" aria-hidden="true"><path d="M5 3h2.5v10H5V3Zm3.5 0H11v10H8.5V3Z"></path></svg>';
 
 function updateRadioButton(isPlaying) {
-    radioButton.textContent = isPlaying ? "Pausar Radio" : "Reproducir Radio";
+    radioIcon.innerHTML = isPlaying ? PAUSE_ICON : PLAY_ICON;
+    radioLabel.textContent = isPlaying ? "Pausar Radio" : "Reproducir Radio";
     radioButton.setAttribute("aria-pressed", String(isPlaying));
 }
 
