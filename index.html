@@ -384,14 +384,12 @@
     </table>
 
     <section class="actions">
-        <a
+        <button
+            id="adminButton"
             class="button"
-            href="https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
         >
             Administrador.
-        </a>
+        </button>
     </section>
 
 </main>
@@ -415,6 +413,9 @@ let currentSort = {
     key: "interno",
     direction: "asc"
 };
+
+const ADMIN_URL = "https://docs.google.com/spreadsheets/d/1VkL2BwUxVs7S4UHMQYe6SPsNC0qmwxjJd2OlJu2xpLw/edit?usp=sharing";
+const ADMIN_PASSWORD = "Peru86";
 
 function setStatus(message, isError = false) {
     statusEl.textContent = message;
@@ -853,6 +854,15 @@ sortableHeaders.forEach((header) => {
         updateSortHeaders();
         filtrarTabla();
     });
+});
+
+document.getElementById("adminButton").addEventListener("click", () => {
+    const password = prompt("Ingresa la contraseña para acceder al administrador:");
+    if (password === ADMIN_PASSWORD) {
+        window.open(ADMIN_URL, "_blank", "noopener,noreferrer");
+    } else if (password !== null) {
+        alert("Contraseña incorrecta.");
+    }
 });
 
 Promise.all([cargarInternosCSV(), cargarCumplesCSV(), cargarNoticiasCSV()]);
