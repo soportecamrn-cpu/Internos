@@ -308,6 +308,77 @@
         background: var(--primary-dark);
     }
 
+    .tools-menu {
+        position: relative;
+    }
+
+    .tools-menu summary {
+        list-style: none;
+    }
+
+    .tools-menu summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .tools-menu-toggle::after {
+        content: "▾";
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .tools-menu[open] .tools-menu-toggle {
+        background: var(--primary-dark);
+    }
+
+    .tools-menu-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        min-width: 420px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        z-index: 20;
+    }
+
+    .tools-menu-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .tools-menu-group {
+        display: grid;
+        gap: 8px;
+    }
+
+    .tools-menu-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .tools-menu-link {
+        color: var(--text);
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+    }
+
+    .tools-menu-link:hover {
+        background: #eef7f1;
+        color: var(--primary-dark);
+    }
+
+    .tools-menu-extra {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
+    }
+
     .radio-button {
         padding: 10px 18px;
     }
@@ -341,6 +412,21 @@
         .useful-links-grid {
             flex-direction: column;
         }
+
+        .tools-menu {
+            width: 100%;
+        }
+
+        .tools-menu-panel {
+            position: static;
+            margin-top: 10px;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .tools-menu-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 </head>
@@ -351,14 +437,56 @@
     <section class="useful-links" aria-labelledby="usefulLinksTitle">
         <h2 id="usefulLinksTitle">Accesos utiles</h2>
         <div class="useful-links-grid">
-            <a
-                class="button"
-                href="https://www.ilovepdf.com/es"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Herramientas para imagen y PDF
-            </a>
+            <details class="tools-menu">
+                <summary class="button tools-menu-toggle">
+                    Herramientas para imagen y PDF
+                </summary>
+                <div class="tools-menu-panel">
+                    <div class="tools-menu-grid">
+                        <section class="tools-menu-group" aria-labelledby="toolsToPdfTitle">
+                            <p id="toolsToPdfTitle" class="tools-menu-title">Convertir a PDF</p>
+                            <a
+                                class="button tools-menu-link"
+                                href="https://www.ilovepdf.com/es/word_a_pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Word a PDF
+                            </a>
+                            <a
+                                class="button tools-menu-link"
+                                href="https://www.ilovepdf.com/es/jpg_a_pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                JPG a PDF
+                            </a>
+                        </section>
+                        <section class="tools-menu-group" aria-labelledby="toolsFromPdfTitle">
+                            <p id="toolsFromPdfTitle" class="tools-menu-title">Convertir desde PDF</p>
+                            <a
+                                class="button tools-menu-link"
+                                href="https://www.ilovepdf.com/es/pdf_a_excel"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                PDF a Excel
+                            </a>
+                        </section>
+                    </div>
+                    <section class="tools-menu-group tools-menu-extra" aria-labelledby="toolsOtherTitle">
+                        <p id="toolsOtherTitle" class="tools-menu-title">Otras herramientas</p>
+                        <a
+                            class="button tools-menu-link"
+                            href="https://www.ilovepdf.com/es/unir_pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Unir PDF
+                        </a>
+                    </section>
+                </div>
+            </details>
             <a
                 class="button"
                 href="https://camionerosrionegro.org.ar/"
